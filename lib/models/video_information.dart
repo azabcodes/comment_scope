@@ -17,25 +17,31 @@ class VideoInformation {
     required this.viewCount,
   });
 
-  factory VideoInformation.fromJson(Map<String, dynamic> json) =>
-      VideoInformation(
-        publishedAt:
-            DateTime.tryParse(json['items'][0]['snippet']['publishedAt']),
-        title: json['items'][0]['snippet']['title'],
-        description: json['items'][0]['snippet']['description'],
-        thumbnail: json['items'][0]['snippet']['thumbnails']['maxres']?['url'],
-        channelTitle: json['items'][0]['snippet']['channelTitle'],
-        tags: json['items'][0]['snippet']['tags'],
-        viewCount: json['items'][0]['statistics']['viewCount'],
-      );
+  factory VideoInformation.fromJson(Map<String, dynamic> json) {
+    // Check if the 'items' list is empty
+    if (json['items'] == null || (json['items'] as List).isEmpty) {
+      throw Exception('No video information found');
+    }
+
+    return VideoInformation(
+      publishedAt:
+          DateTime.tryParse(json['items'][0]['snippet']['publishedAt']),
+      title: json['items'][0]['snippet']['title'],
+      description: json['items'][0]['snippet']['description'],
+      thumbnail: json['items'][0]['snippet']['thumbnails']['maxres']?['url'],
+      channelTitle: json['items'][0]['snippet']['channelTitle'],
+      tags: json['items'][0]['snippet']['tags'],
+      viewCount: json['items'][0]['statistics']['viewCount'],
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         "title": title,
-        "publishedAt": publishedAt,
+        "publishedAt": publishedAt?.toIso8601String(),
         "description": description,
         "thumbnail": thumbnail,
         "channelTitle": channelTitle,
-        "tags": tags?.map((e) => e),
+        "tags": tags,
         "viewCount": viewCount,
       };
 }

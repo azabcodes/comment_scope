@@ -14,13 +14,10 @@ BaseOptions ytbOptions = BaseOptions(
 );
 
 final Dio dio = Dio(ytbOptions);
-
 Logger log = Logger();
 
-/// Provide either the video URL or the video id.
 Future<List<Comment?>> getComments(String video, BuildContext context) async {
   final List<Comment?> comments = [];
-
   String videoId = '';
 
   if (video.length > 11) {
@@ -31,10 +28,7 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
           behavior: SnackBarBehavior.floating,
           width: MediaQuery.of(context).size.width * .8,
           backgroundColor: Colors.red,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           shape: const RoundedRectangleBorder(),
           content: const Text(
             'The URL provided is not a valid YouTube video URL!',
@@ -64,7 +58,6 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
     comments.addAll(res.comments?.toList() ?? []);
 
     // While the response has [nextPageToken] parameter there are still pages with comments.
-    // We keep on requesting and populating the comments list.
     while (res.nextPageToken != null) {
       final response = await dio.get(
         'commentThreads',
@@ -86,10 +79,7 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
         behavior: SnackBarBehavior.floating,
         width: MediaQuery.of(context).size.width * .8,
         backgroundColor: Colors.red,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 20,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         shape: const RoundedRectangleBorder(),
         content: Text(
           '${e.message}',
@@ -106,26 +96,30 @@ Future<VideoInformation?> getVideoInformation(String video) async {
 
   if (video.length > 11) {
     videoId = video.after('?v=').before('&ab_channel')!;
-    if (video.isEmpty) {
+    if (videoId.isEmpty) {
       return null;
     }
   } else {
     videoId = video;
   }
 
-  final response = await dio.get(
-    'videos',
-    queryParameters: {
-      "part": "snippet,contentDetails,statistics",
-      "id": videoId,
-      "key": dotenv.env['API_KEY'],
-    },
-  );
+  try {
+    final response = await dio.get(
+      'videos',
+      queryParameters: {
+        "part": "snippet,contentDetails,statistics",
+        "id": videoId,
+        "key": dotenv.env['API_KEY'],
+      },
+    );
 
-  final VideoInformation videoInformation =
-      VideoInformation.fromJson(response.data);
+    final VideoInformation videoInformation =
+        VideoInformation.fromJson(response.data);
 
-  log.wtf(videoInformation.toJson());
-
-  return videoInformation;
+    log.wtf(videoInformation.toJson());
+    return videoInformation;
+  } catch (e) {
+    log.e('Error fetching video information: $e');
+    return null; // Handle the error as appropriate
+  }
 }
