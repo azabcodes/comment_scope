@@ -75,7 +75,7 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
       res = CommentsResponse.fromJson(response.data as Map<String, dynamic>);
       comments.addAll(res.comments?.toList() ?? []);
     }
-  } on DioError catch (e) {
+  } on DioException catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
