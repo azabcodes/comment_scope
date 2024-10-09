@@ -229,12 +229,12 @@ class _LandingScreenState extends State<LandingScreen> {
                     TextField(
                       controller: _filterTextController,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                       decoration: kInputDecoration(labeText: 'Search comments')
                           .copyWith(
                         labelStyle: const TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontSize: 20,
                         ),
                       ),
@@ -298,6 +298,7 @@ class _LandingScreenState extends State<LandingScreen> {
                           '${filteredComments.length} comments found',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),

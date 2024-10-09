@@ -9,8 +9,8 @@ import 'package:comment_scope/models/video_information.dart';
 BaseOptions ytbOptions = BaseOptions(
   baseUrl: 'https://youtube.googleapis.com/youtube/v3/',
   receiveDataWhenStatusError: true,
-  connectTimeout: const Duration(seconds: 30), // 6 seconds
-  receiveTimeout: const Duration(seconds: 30), // 6 seconds
+  connectTimeout: const Duration(seconds: 30),
+  receiveTimeout: const Duration(seconds: 30),
 );
 
 final Dio dio = Dio(ytbOptions);
@@ -20,26 +20,29 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
   final List<Comment?> comments = [];
   String videoId = '';
 
-  if (video.length > 11) {
-    videoId = video.after('?v=').before('&ab_channel')!;
-    if (videoId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          width: MediaQuery.of(context).size.width * .8,
-          backgroundColor: Colors.red,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          shape: const RoundedRectangleBorder(),
-          content: const Text(
-            'The URL provided is not a valid YouTube video URL!',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-      return [];
-    }
+  final RegExp regExp = RegExp(
+    r"(?:v=|\/)([0-9A-Za-z_-]{11})",
+    caseSensitive: false,
+  );
+  final match = regExp.firstMatch(video);
+
+  if (match != null) {
+    videoId = match.group(1)!;
   } else {
-    videoId = video;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        width: MediaQuery.of(context).size.width * .8,
+        backgroundColor: Colors.red,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        shape: const RoundedRectangleBorder(),
+        content: const Text(
+          'The URL provided is not a valid YouTube video URL!',
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+    return [];
   }
 
   try {
@@ -52,12 +55,12 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
         "key": dotenv.env['API_KEY'],
       },
     );
+
     CommentsResponse res =
-        CommentsResponse.fromJson(response.data as Map<String, dynamic>);
+    CommentsResponse.fromJson(response.data as Map<String, dynamic>);
 
     comments.addAll(res.comments?.toList() ?? []);
 
-    // While the response has [nextPageToken] parameter there are still pages with comments.
     while (res.nextPageToken != null) {
       final response = await dio.get(
         'commentThreads',
@@ -70,7 +73,6 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
         },
       );
       res = CommentsResponse.fromJson(response.data as Map<String, dynamic>);
-
       comments.addAll(res.comments?.toList() ?? []);
     }
   } on DioError catch (e) {
@@ -82,7 +84,7 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         shape: const RoundedRectangleBorder(),
         content: Text(
-          '${e.message}',
+          'Error: ${e.message}',
           textAlign: TextAlign.center,
         ),
       ),
@@ -94,13 +96,16 @@ Future<List<Comment?>> getComments(String video, BuildContext context) async {
 Future<VideoInformation?> getVideoInformation(String video) async {
   String videoId = '';
 
-  if (video.length > 11) {
-    videoId = video.after('?v=').before('&ab_channel')!;
-    if (videoId.isEmpty) {
-      return null;
-    }
+  final RegExp regExp = RegExp(
+    r"(?:v=|\/)([0-9A-Za-z_-]{11})",
+    caseSensitive: false,
+  );
+  final match = regExp.firstMatch(video);
+
+  if (match != null) {
+    videoId = match.group(1)!;
   } else {
-    videoId = video;
+    return null; // Handle the case of an invalid video ID
   }
 
   try {
@@ -114,7 +119,7 @@ Future<VideoInformation?> getVideoInformation(String video) async {
     );
 
     final VideoInformation videoInformation =
-        VideoInformation.fromJson(response.data);
+    VideoInformation.fromJson(response.data);
 
     log.wtf(videoInformation.toJson());
     return videoInformation;

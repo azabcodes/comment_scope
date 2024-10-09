@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'YouTube Comment Picker',
       scrollBehavior: ScrollConfiguration.of(context).copyWith(
         dragDevices: {
