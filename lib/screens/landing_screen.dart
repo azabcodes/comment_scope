@@ -100,7 +100,10 @@ class _LandingScreenState extends State<LandingScreen> {
                   _filterTextController.clear();
                 });
               },
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(
+                Icons.refresh,
+                color: Colors.white,
+              ),
             )
         ],
       ),
